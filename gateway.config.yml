@@ -1,0 +1,44 @@
+http:
+  port: 8080
+admin:
+  port: 9876
+  hostname: localhost
+apiEndpoints:
+  api:
+    host: localhost
+    paths: ['/svc', '/svc/*']
+serviceEndpoints:
+  httpbin:
+    url: 'https://httpbin.org'
+policies:
+  - basic-auth
+  - cors
+  - expression
+  - key-auth
+  - log
+  - oauth2
+  - proxy
+  - rate-limit
+  - rewrite
+pipelines:
+  default:
+    apiEndpoints:
+      - api
+    policies:
+    # Uncomment `key-auth:` when instructed to in the Getting Started guide.
+    # - key-auth:
+      - rewrite:
+        - condition:
+            name: regexpmatch
+            match: ^/svc$
+          action:
+            rewrite: /
+        - condition:
+            name: regexpmatch
+            match: ^/svc/(.*)$
+          action:
+            rewrite: /$1
+      - proxy:
+          - action:
+              serviceEndpoint: httpbin
+              changeOrigin: true
